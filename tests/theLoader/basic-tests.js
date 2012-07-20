@@ -1,5 +1,5 @@
-go('a', function (a) {
-    sQ.require(['b'], function (b) {
+(go.config(true))('a', function (a) {
+    (sQ.require.config(true))(['b'], function (b) {
         doh.register(
             "theLoader/basic",
             [

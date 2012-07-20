@@ -168,12 +168,12 @@
 				function isArray(arr) { return 'undefined' !== typeof arr && arr.splice; }
 		        //This module may not have dependencies
 		        if (!isArray(dependencies)) {
-		            factory = dependencies;
+			        factory = dependencies;
 		            dependencies = [];
 		        }
 				if(null === name) {
 					//TODO:
-					//name = this.utils.createModuleName();
+					//name = this.createModuleName();
 				}
 				
 				var module = specified[name] = {};
@@ -181,16 +181,20 @@
 				module.name = name;
 				module.dependencies = dependencies;
 				module.factory = factory;
-
 			},
-
-			require: function ( dep, callback) {
+			
+			requireNonBlocking: function(dep, callback) {
+				//TODO:
+				console.log('call async load here');
+				return sQ.requireNonblocking;
+			},
+			
+			requireBlocking: function (dep, callback) {
 				if (callback === null && 'undefined' !== typeof required[dep]) {
 					callback = required[dep].callback;
 				}
-
-				var counter, self = this,
-					oldCallback, makeLoad,
+				
+				var counter, oldCallback,
 					depResults = [],
 					tResolve = function (specifiedModule, args) {
 						args = args || [];
@@ -211,13 +215,13 @@
 							if (0 === specified[dep].dependencies.length || 'undefined' !== typeof specified[dep].result ) {
 								tResolve(specified[dep]);
 							} else {
-								sQ.require(specified[dep].dependencies, function () {
+								sQ.requireBlocking(specified[dep].dependencies, function () {
 									
 									tResolve(specified[dep], arguments);
 
 								})
 							}
-							
+
 						} else {
 							if ('undefined' === typeof required[dep]) {
 								required[dep] = {
@@ -225,7 +229,7 @@
 									isModule: (-1 === dep.lastIndexOf('.js'))
 								};
 								sQ.load(dep, function(){
-									sQ.require(dep, null)
+									sQ.requireBlocking(dep, null)
 								});
 							} else {
 								if (required[dep].isModule) {
@@ -245,7 +249,7 @@
 										result: null
 									};
 									//call callback for simple file
-									sQ.require(dep, required[dep].callback);
+									sQ.requireBlocking(dep, required[dep].callback);
 								}
 								
 							}
@@ -261,7 +265,7 @@
 	
 								(function(c){
 									
-									sQ.require(dep[c], function(result){
+									sQ.requireBlocking(dep[c], function(result){
 	
 										depResults[c] =  result;
 										results++;
@@ -280,10 +284,15 @@
 				} else {
 					requireArray();
 				}
+				return sQ.requireBlocking;
 			}
-
 		};
-	
+		
+	sQ.require = sQ.requireNonBlocking;
+	sQ.require.config = function(isBlocking) {
+		return isBlocking? sQ.requireBlocking : sQ.requireNonBlocking;
+	};
+
 	root.specify = sQ.specify;
 
 	root.specify.md = true;
