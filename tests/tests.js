@@ -25,14 +25,14 @@
         basic: function () {
             reg('basic/defineAmd');
             reg('basic/simple');
-            reg('basic/circular');
+            // reg('basic/circular');
         },
 
         anon: function () {
             reg('anon/simple');
             reg('anon/circular');
             reg('anon/relativeModuleId');
-        },
+       },
 
         funcString: function () {
             reg('funcString/funcString');
@@ -47,7 +47,7 @@
         },
         theLoader: function () {
             reg('theLoader/basic');
-            reg('theLoader/circular');
+            // reg('theLoader/circular');
         },
 
         plugins: function () {

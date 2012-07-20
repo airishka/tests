@@ -6,6 +6,7 @@ go('a', function (a) {
                 function theLoaderBasic(t) {
                     t.is('a', a.name);
                     t.is('b', b.name);
+					t.is('c', b.c.name);
                 }
             ]
         );

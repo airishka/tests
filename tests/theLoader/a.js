@@ -1,3 +1,3 @@
-specify('a', [], {
+define('a', {
     name: 'a'
 });

@@ -158,22 +158,23 @@
 			du: false,
 
 			specify: function (name, dependencies, factory) {
-				// //Allow for anonymous functions	
-				// if (typeof name !== 'string') { 
-					// //Adjust args appropriately 
-					// factory = dependencies; 
-					// dependencies = name; 
-					// name = null; 
-				// } 
-// 				function isArray(arr) { return 'undefined' !== typeof arr && arr.splice; }
-		        // //This module may not have dependencies
-		        // if (!isArray(dependencies)) {
-		            // factory = dependencies;
-		            // dependencies = [];
-		        // }
-				// if(null === name) {
-					// name = this.utils.createModuleName();
-				// }
+				//Allow for anonymous functions	
+				if (typeof name !== 'string') { 
+					//Adjust args appropriately 
+					factory = dependencies; 
+					dependencies = name; 
+					name = null; 
+				} 
+				function isArray(arr) { return 'undefined' !== typeof arr && arr.splice; }
+		        //This module may not have dependencies
+		        if (!isArray(dependencies)) {
+		            factory = dependencies;
+		            dependencies = [];
+		        }
+				if(null === name) {
+					//TODO:
+					//name = this.utils.createModuleName();
+				}
 				
 				var module = specified[name] = {};
 
@@ -244,7 +245,7 @@
 										result: null
 									};
 									//call callback for simple file
-									sQ.require.call(self, dep, required[dep].callback);
+									sQ.require(dep, required[dep].callback);
 								}
 								
 							}

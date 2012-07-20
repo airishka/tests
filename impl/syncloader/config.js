@@ -9,7 +9,7 @@ var config = sQ.config,
     //and therefore which tests to run.
     implemented = {
         basic: true,
-        anon: true,
+        anon: false,
         // funcString: true,
         // namedWrapped: true,
         // require: true,
