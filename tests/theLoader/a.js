@@ -1,0 +1,3 @@
+specify('a', [], {
+    name: 'a'
+});
