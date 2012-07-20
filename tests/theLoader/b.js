@@ -1,6 +1,6 @@
-specify('b', ['c'], function (c) {
+define('b', ['c'], function (c) {
     return {
         name: 'b',
-		cName: c.name
+        c: c
     };
 });

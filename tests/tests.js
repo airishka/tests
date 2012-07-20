@@ -25,7 +25,7 @@
         basic: function () {
             reg('basic/defineAmd');
             reg('basic/simple');
-            // reg('basic/circular');
+            reg('basic/circular');
         },
 
         anon: function () {
@@ -47,8 +47,8 @@
         },
         theLoader: function () {
             reg('theLoader/basic');
-            // reg('theLoader/circular');
-        },
+            reg('theLoader/circular');
+         },
 
         plugins: function () {
             reg('plugins/double');

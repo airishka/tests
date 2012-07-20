@@ -16,17 +16,5 @@ go(["two"],//, "funcTwo", "funcThree"],
             ]
         );
         doh.run();
-
-        doh.register(
-            "theLoader/circularFunc",
-            [
-                function theLoaderCircularFunc(t) {
-                    t.is("TWO", twoInst.name);
-                    // t.is("ONE-NESTED", twoInst.oneName());
-                    // t.is("THREE-THREE_SUFFIX", funcThree("THREE"));
-                }
-            ]
-        );
-        doh.run();
     }
 );

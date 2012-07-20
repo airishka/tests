@@ -10,9 +10,9 @@ var config = sQ.config,
     implemented = {
         basic: true,
         anon: false,
-        // funcString: true,
-        // namedWrapped: true,
-        // require: true,
+        funcString: false,
+        namedWrapped: false,
+        require: false,
         theLoader: true,
         // plugins: true
         //Does NOT support pluginDynamic in 1.0
