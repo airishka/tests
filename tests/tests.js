@@ -9,7 +9,6 @@
             'funcString',
             'namedWrapped',
             'require',
-            'theLoader',
             'plugins',
             'pluginDynamic'
         ],
@@ -32,7 +31,7 @@
             reg('anon/simple');
             reg('anon/circular');
             reg('anon/relativeModuleId');
-       },
+        },
 
         funcString: function () {
             reg('funcString/funcString');
@@ -45,10 +44,6 @@
         require: function () {
             reg('require/basic');
         },
-        theLoader: function () {
-            reg('theLoader/basic');
-            reg('theLoader/circular');
-         },
 
         plugins: function () {
             reg('plugins/double');

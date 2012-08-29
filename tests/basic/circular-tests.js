@@ -1,4 +1,4 @@
-go(    ["two", "funcTwo", "funcThree"],
+go(    ["require", "two", "funcTwo", "funcThree"],
 function(require,   two,   funcTwo,   funcThree) {
         var args = two.doSomething(),
             twoInst = new funcTwo("TWO"),

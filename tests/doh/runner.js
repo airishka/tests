@@ -10,6 +10,7 @@
 //
 // Utility Functions and Classes
 //
+
 doh.selfTest = false;
 
 doh.global = this;
