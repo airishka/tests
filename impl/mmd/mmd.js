@@ -170,12 +170,29 @@
 			if(parentId) {
 				for (i=0; i < mln; i++) {
 					if (moduleIdArr[i].indexOf('./') === 0) {
-						moduleIdArr[i].replace('\.\/', parentId.substr(0,parentId.lastIndexOf('/')+1));
+						moduleIdArr[i] = moduleIdArr[i].replace('\.\/', parentId.substr(0,parentId.lastIndexOf('/')+1));
 					}
 					console.log('moduleId: ', moduleIdArr[i]);///
 				}
 			}
+			console.log('processRelativePath', moduleIdArr, 'parent: ', parentId);
 			return isString? moduleIdArr[0] : moduleIdArr;
+		}
+		
+		function normalize(moduleId) {
+			var isString = 'string' === typeof moduleId,
+				moduleIdArr = !isString? moduleId : [moduleId],
+				i, mln = moduleIdArr.length;
+				
+				if (instanceConfig.hasOwnProperty('paths')) {
+					for (i=0; i < mln; i++) {
+						if (instanceConfig.paths.hasOwnProperty(moduleIdArr[i])){
+		       				 moduleIdArr[i] = instanceConfig.paths[moduleIdArr[i]];
+		    			}
+		    		}
+		   		}
+		   		console.log('normalized', moduleIdArr);
+		   		return isString? moduleIdArr[0] : moduleIdArr;
 		}
 		
 		function require ( mixed ) {
@@ -187,8 +204,8 @@
 			
 			} else {
 				
-				//check for relative path
-				reqModule = processRelativePath(arguments[0]);
+				//add path to moduleName if specifyed in config
+				reqModule = normalize(arguments[0]);
 				
 				if (typeof reqModule.sort == 'function'){
 					requireArray(null, reqModule, arguments[1]);
@@ -203,6 +220,9 @@
 		function requireArray (parent, dependencies, callback) {
 			var results = [], forIndex,
 				dependenciesLength = dependencies.length;
+				
+				//check for relative path
+				dependencies = processRelativePath(dependencies, parent);
 				
 			function requireArrayItem(index){
 				var moduleId = dependencies[index];
