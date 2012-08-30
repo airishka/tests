@@ -162,19 +162,39 @@
 				resolveWaiting(name);
 			}
 		}	
+		function processRelativePath(moduleId, parentId) {
+			var isString = 'string' === typeof moduleId,
+				moduleIdArr = !isString? moduleId : [moduleId],
+				i, mln = moduleIdArr.length;
+				
+			if(parentId) {
+				for (i=0; i < mln; i++) {
+					if (moduleIdArr[i].indexOf('./') === 0) {
+						moduleIdArr[i].replace('\.\/', parentId.substr(0,parentId.lastIndexOf('/')+1));
+					}
+					console.log('moduleId: ', moduleIdArr[i]);///
+				}
+			}
+			return isString? moduleIdArr[0] : moduleIdArr;
+		}
 		
 		function require ( mixed ) {
 			// debugger
+			var reqModule;
 			if (this instanceof require) {
 			
 				return getMmdInstance(arguments[0]);	
 			
 			} else {
-				if (typeof arguments[0].sort == 'function'){
-					requireArray(null, arguments[0], arguments[1]);
+				
+				//check for relative path
+				reqModule = processRelativePath(arguments[0]);
+				
+				if (typeof reqModule.sort == 'function'){
+					requireArray(null, reqModule, arguments[1]);
 					
-				} else if ('string' === typeof arguments[0]) {
-					return requireString(arguments[0], arguments[1]);
+				} else if ('string' === typeof reqModule) {
+					return requireString(reqModule, arguments[1]);
 					
 				}		
 			}
@@ -185,19 +205,19 @@
 				dependenciesLength = dependencies.length;
 				
 			function requireArrayItem(index){
-				var module = dependencies[index];
+				var moduleId = dependencies[index];
 				
-				if (!commonJsHandlers[module])  {  
-					requireString(module, function(result){
-						results[index] =  result;
+				if (!commonJsHandlers[moduleId])  {  
+					requireString(moduleId, function(result){
+						results[index] = result;
 						
 						if (dependenciesLength === results.length) {
 							callback.apply(null, results)
 						}
 					});
 				} else {
-
-					results[index] = commonJsHandlers[module].call(null, waiting[parent]);
+					//parent module is already required
+					results[index] = commonJsHandlers[moduleId].call(null, waiting[parent]);
 					
 					if (dependenciesLength === results.length) {
 						callback.apply(null, results);
@@ -225,7 +245,7 @@
 				plugin = module.split('!')[0];
 				module = module.split('!')[1];
 			}
-
+			
 			if(plugin){
 
 				requireString(plugin, function(plugin){
@@ -294,9 +314,9 @@
 		}
 		
 		function waitFor (module, callback) {
-		    if(instanceConfig.hasOwnProperty('paths') && instanceConfig.paths.hasOwnProperty(module)){
-		        module = instanceConfig.paths[module];
-		    }
+		    // if(instanceConfig.hasOwnProperty('paths') && instanceConfig.paths.hasOwnProperty(module)){
+		        // module = instanceConfig.paths[module];
+		    // }
             
 			var waitingModule = waiting[module] = waiting[module] || { callbacks: [] },
 				ext = module.split('?')[0].split('#')[0].split('.').pop(),
@@ -326,13 +346,15 @@
 			}
 		}
 		
-		function load (module) {	    
+		function load (module) {
 			requireString(instanceConfig.loader, function(loader){
 	
-				var callback = waiting[module].isModule? function() {
-				    var item = anonQueue.shift();
-
-				    define(arguments[1], item[1], item[2]);
+				var callback = waiting[module].isModule ? function() {
+				    var item;
+				    if(anonQueue.length){
+                        item = anonQueue.shift();
+                        define(arguments[1], item[1], item[2]); //
+                    }
 				} : function() {
 					resolveWaiting(module);
 				};
