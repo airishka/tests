@@ -1,12 +1,12 @@
 
 //Map the configure({}) call to loader-specific call.
-var require = new require({
+var requireInst = new require({
 	loader: 'loader.nonBlocking' 
 }), 
-	config = require.configure,
+	config = requireInst.configure,
 
     //Map the top-level entry point to start loading to loader-specific call.
-    go = require,
+    go = requireInst,
 
     //Indicate what levels of the API are implemented by this loader,
     //and therefore which tests to run.

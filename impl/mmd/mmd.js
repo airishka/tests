@@ -17,14 +17,15 @@
 	
 	var defined = {},
 		waiting = {},
+		mmdRequire,
 		anonQueue = [],
 		FILE_WHTITE_LIST = ['js','json','jsonp','css'], 
 		ANON_DATA_ATTR = "data-req_module",
 		factoryConfig = {},
 
 		commonJsHandlers = {
-			'require': function(mod) {
-				return mod && mod.contextRequire || require;
+			'require': function(mod) {		
+				return mod && mod.contextRequire || mmdRequire;
 			},
 			 
 			'exports': function(mod) {
@@ -104,7 +105,8 @@
 			config = extend(config, configObj)
 			
 			mmdObj = new MmdClass(config);
-				
+			//for required require
+			mmdRequire = mmdObj.require;	
 			return mmdObj.require;
 		}
 		
@@ -196,7 +198,7 @@
 		}
 		
 		function require ( mixed ) {
-			// debugger
+			
 			var reqModule;
 			if (this instanceof require) {
 			
@@ -428,7 +430,9 @@
 		extend(this.require, {
 			getConfig: getConfig,
 			configure: configure,
-			isDefined: isDefined
+			isDefined: isDefined,
+			mmdRequire : mmdRequire,
+			toUrl : toUrl
 		});
 	}
 	
