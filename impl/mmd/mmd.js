@@ -91,6 +91,10 @@
 			
 			instanceConfig = config;
 		}
+		//public function on require
+		function configure(confObj) {
+			instanceConfig = extend(confObj, instanceConfig);
+		}
 		
 		function getMmdInstance (configObj) {
 			var config = {},
@@ -361,7 +365,6 @@
 						result: null
 					};
 				}
-
 				
 				for (counter=0; counter < waitingCallbacksLength; counter++) {
 					waiting[module].contextRequire(module, waiting[module].callbacks[counter]);
@@ -382,6 +385,7 @@
 		
 		extend(this.require, {
 			getConfig: getConfig,
+			configure: configure,
 			isDefined: isDefined
 		});
 	}

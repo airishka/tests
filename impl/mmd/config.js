@@ -3,7 +3,7 @@
 var require = new require({
 	loader: 'loader.nonBlocking' 
 }), 
-	config = require,
+	config = require.configure,
 
     //Map the top-level entry point to start loading to loader-specific call.
     go = require,
