@@ -121,20 +121,12 @@
 		}
 		
 		function checkUrl(url, isModule) {
-			var isAbsolute = ('string' !== typeof url) ? false : url.match(/^\w+:/),
-				src = isAbsolute ? url : url; //utils.usePathFallback(url);
-			
-			src = checkPaths(src);
-			src += isModule ? '.js' : '';
+			var isAbsolute = ('string' !== typeof url) ? false : url.match(/^\w+:/);
+				
+				url += isModule ? '.js' : '';
 
-			return (isAbsolute ? "" : instanceConfig.baseUrl) + src;
+			return (isAbsolute ? "" : instanceConfig.baseUrl) + url;
 
-		}
-
-		function checkPaths(name) {
-			var isPathConfig = instanceConfig.hasOwnProperty('paths') && instanceConfig.paths.hasOwnProperty(name);
-			
-			return isPathConfig ? instanceConfig.paths[name] : name;
 		}
 
 		function toUrl() {
@@ -231,7 +223,7 @@
 		}
 		
 		function require ( mixed ) {
-			
+			//debugger
 			var reqModule;
 			if (this instanceof require) {
 			
@@ -284,12 +276,15 @@
 				callback.apply(null, results);			
 					
 			} else {
-				if(isDefined(parent)) { defined[parent].deps_required = true; }
+				if ( isDefined(parent) ) { 
+					defined[parent].deps_required = true;
+				}
 
 				for(forIndex=0; forIndex < dependenciesLength; forIndex += 1){
 					requireArrayItem(forIndex);
 				}
 			}
+			
 		}
 		
 		function requireString (module, callback) {
@@ -342,7 +337,7 @@
 						return defined[module].result;
 					
 					} else {
-
+						
 						if (0 === defined[module].dependencies.length || defined[module].deps_required) {
 							resolveRequire(module, callback);
 						} else {
