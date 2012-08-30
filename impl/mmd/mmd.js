@@ -209,7 +209,7 @@
 				//add path to moduleName if specifyed in config
 				reqModule = normalize(arguments[0]);
 				
-				if (typeof reqModule.sort == 'function'){
+				if (typeof reqModule.sort === 'function'){
 					requireArray(null, reqModule, arguments[1]);
 					
 				} else if ('string' === typeof reqModule) {
@@ -269,11 +269,20 @@
 			}
 			
 			if(plugin){
-
 				requireString(plugin, function(plugin){
-					plugin.load(
-						[module], 
-						function(){
+					
+					if (plugin && plugin.normalize) {
+                        //Plugin is loaded, use its normalize method.
+                        module = plugin.normalize(name, function (name) {
+                            return normalize(name);
+                        });
+                    } else {
+                        module = normalize(name);
+                    }
+					
+					
+					plugin.load([module], mmdRequire, function(param){
+						    
 							//the module is already loaded, but has 
 							//no define call (css,text,html,plain js, smth)
 							//then we should define it, to prevent load the same file as a script
@@ -282,10 +291,13 @@
 							if (!isDefined(module)) { 
 								define(module, [], null);
 							}
+							if(param){
+								defined[module].result = param;	
+							}							
 							//module is a string and is defined now, resolve it   
 							requireString(module, callback);
-						}, toUrl
-					);
+							
+						}, instanceConfig);
 				});
 			} else {
   
