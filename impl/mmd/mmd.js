@@ -22,6 +22,9 @@
 		FILE_WHTITE_LIST = ['js','json','jsonp','css'], 
 		ANON_DATA_ATTR = "data-req_module",
 		factoryConfig = {},
+		cjsRequireRegExp = /[^.]\s*require\s*\(\s*["']([^'"\s]+)["']\s*\)/g,
+		commentRegExp = /(\/\*([\s\S]*?)\*\/|([^:]|^)\/\/(.*)$)/mg,
+		ostring = Object.prototype.toString,
 
 		commonJsHandlers = {
 			'require': function(mod) {		
@@ -67,6 +70,13 @@
 	function isDefined( moduleId ) {
 		return (defined.hasOwnProperty(moduleId));
 	}
+	function isFunction(it) {
+        return ostring.call(it) === '[object Function]';
+    }
+
+    function isArray(it) {
+        return ostring.call(it) === '[object Array]';
+    }
 
 
 	function MmdClass (defautlInstanceConfig) {
@@ -147,6 +157,29 @@
 				factory = dependencies;
 				dependencies = [];
 			}
+			
+			//If no dependencies, and factory is a function, then figure out if it a
+			//CommonJS thing with dependencies.
+			if (!dependencies.length && isFunction(factory)) {
+				//Remove comments from the factory string,
+				//look for require calls, and pull them into the dependencies,
+				//but only if there are function args.
+				if (factory.length) {
+					factory.toString()
+							.replace(commentRegExp, '')
+							.replace(cjsRequireRegExp, function(match, dep) {
+								dependencies.push(dep);
+							});
+
+					//May be a CommonJS thing even without require calls, but still
+					//could use exports, and module. Avoid doing exports and module
+					//work though if it just needs require.
+					//REQUIRES the function to expect the CommonJS variables in the
+					//order listed below.
+					dependencies = (factory.length === 1 ? ['require'] : ['require', 'exports', 'module']).concat(dependencies);
+				}
+			}
+
 
 			if(isAnon){
 				anonQueue.push([name, dependencies, factory]);
@@ -174,10 +207,10 @@
 					if (moduleIdArr[i].indexOf('./') === 0) {
 						moduleIdArr[i] = moduleIdArr[i].replace('\.\/', parentId.substr(0,parentId.lastIndexOf('/')+1));
 					}
-					console.log('moduleId: ', moduleIdArr[i]);///
 				}
 			}
-			console.log('processRelativePath', moduleIdArr, 'parent: ', parentId);
+			console.log('processRelativePath', moduleIdArr, 'parent: ', parentId);///
+			
 			return isString? moduleIdArr[0] : moduleIdArr;
 		}
 		
