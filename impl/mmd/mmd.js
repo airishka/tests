@@ -240,13 +240,15 @@
 							modArr = moduleIdArr[i].split('/');
 						for(j=0; j < modArr.length; j++){
 							if(modArr[j] === '..'){
-								moduleIdArr[i] = moduleIdArr[i].replace('\.\.\/', parentId.substr(parentId.lastIndexOf('/'), null));
+								
+								moduleIdArr[i] = moduleIdArr[i].replace('..\/', parentId.substr(parentId.lastIndexOf('/'), null));
 							}
 						}
 						
 					}else{
 						if (moduleIdArr[i].indexOf('./') === 0) {
-							moduleIdArr[i] = moduleIdArr[i].replace('\.\/', parentId.substr(0,parentId.lastIndexOf('/')+1));
+						   //TODO:if there are more than one ./
+							moduleIdArr[i] = moduleIdArr[i].replace('./', parentId.substr(0,parentId.lastIndexOf('/')+1));
 						}
 					}
 				}
