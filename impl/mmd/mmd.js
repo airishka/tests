@@ -120,20 +120,12 @@
 		}
 		
 		function checkUrl(url, isModule) {
-			var isAbsolute = ('string' !== typeof url) ? false : url.match(/^\w+:/),
-				src = isAbsolute ? url : url; //utils.usePathFallback(url);
-			
-			src = checkPaths(src);
-			src += isModule ? '.js' : '';
+			var isAbsolute = ('string' !== typeof url) ? false : url.match(/^\w+:/);
+				
+				url += isModule ? '.js' : '';
 
-			return (isAbsolute ? "" : instanceConfig.baseUrl) + src;
+			return (isAbsolute ? "" : instanceConfig.baseUrl) + url;
 
-		}
-
-		function checkPaths(name) {
-			var isPathConfig = instanceConfig.hasOwnProperty('paths') && instanceConfig.paths.hasOwnProperty(name);
-			
-			return isPathConfig ? instanceConfig.paths[name] : name;
 		}
 
 		function toUrl() {
@@ -195,7 +187,48 @@
 
 				resolveWaiting(name);
 			}
-		}	
+		}
+		
+		/**
+         * Given a relative module name, like mapval/something, normalize it to
+         * a real name that can be mapped to a path.
+         * @param {String} name the relative name
+         * @returns {String} normalized name
+         */
+		function usePathFallback(name) {
+
+            var nameParts = name && name.split('/'),
+                map = instanceConfig.paths,
+                mapValue, i, nameSegment, foundMap;
+
+            //Apply map config if available.
+            if (nameParts && map) {
+
+				//Find the longest name segment match in the config.
+				//So, do joins on the biggest to smallest lengths of baseParts.
+				for (i = nameParts.length; i > 0; i -= 1) {
+					nameSegment = nameParts.slice(0, i).join('/');
+
+                    //name segment has  config, find if it has one for
+                    //this name.
+                    mapValue = map[nameSegment];
+                    if (mapValue) {
+						//Match, update name to the new value.
+						foundMap = mapValue;
+						break;
+					}
+				}
+
+                if (foundMap) {
+                    nameParts.splice(0, i, foundMap);
+                    name = nameParts.join('/');
+					
+                }
+            }
+
+            return name;
+		}
+			
 		function processRelativePath(moduleId, parentId) {
 			var isString = 'string' === typeof moduleId,
 				moduleIdArr = !isString? moduleId : [moduleId],
@@ -225,15 +258,15 @@
 				if (instanceConfig.hasOwnProperty('paths')) {
 					for (i=0; i < mln; i++) {
 						if (instanceConfig.paths.hasOwnProperty(moduleIdArr[i])){
-							 moduleIdArr[i] = instanceConfig.paths[moduleIdArr[i]];
+							 moduleIdArr[i] = usePathFallback(moduleIdArr[i]);
 						}
 					}
 				}
-			return isString ? moduleIdArr[0] : moduleIdArr;
+				return isString? moduleIdArr[0] : moduleIdArr;
 		}
 		
 		function require ( mixed ) {
-			
+			//debugger
 			var reqModule;
 			if (this instanceof require) {
 			
@@ -241,7 +274,7 @@
 			
 			} else {
 				
-				//add path to moduleName if specifyed in config
+				//add path to moduleName if specified in config
 				reqModule = normalize(arguments[0]);
 				
 				if (typeof reqModule.sort === 'function'){
@@ -287,12 +320,15 @@
 				callback.apply(null, results);			
 					
 			} else {
-				if(isDefined(parent)) { defined[parent].deps_required = true; }
+				if ( isDefined(parent) ) { 
+					defined[parent].deps_required = true;
+				}
 
 				for(forIndex=0; forIndex < dependenciesLength; forIndex += 1){
 					requireArrayItem(forIndex);
 				}
 			}
+			
 		}
 		
 		function exec(text) {
@@ -355,7 +391,7 @@
 						return defined[module].result;
 					
 					} else {
-
+						
 						if (0 === defined[module].dependencies.length || defined[module].deps_required) {
 							resolveRequire(module, callback);
 						} else {
@@ -394,9 +430,6 @@
 		}
 		
 		function waitFor (module, callback) {
-		    // if(instanceConfig.hasOwnProperty('paths') && instanceConfig.paths.hasOwnProperty(module)){
-		        // module = instanceConfig.paths[module];
-		    // }
             
 			var waitingModule = waiting[module] = waiting[module] || { callbacks: [] },
 				ext = module.split('?')[0].split('#')[0].split('.').pop(),
