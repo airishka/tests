@@ -231,15 +231,23 @@
 		function processRelativePath(moduleId, parentId) {
 			var isString = 'string' === typeof moduleId,
 				moduleIdArr = !isString? moduleId : [moduleId],
-				i, mln = moduleIdArr.length;
+				i, j, modArr, mln = moduleIdArr.length;
 				
 			if(parentId) {
 				for (i=0; i < mln; i++) {
 					if(moduleIdArr[i].indexOf('../') === 0){
-						moduleIdArr[i] = moduleIdArr[i].replace('\.\.\/', parentId.substr(parentId.lastIndexOf('/'), null));
+							modArr = moduleIdArr[i].split('/');
+						for(j=0; j < modArr.length; j++){
+							if(modArr[j] === '..'){
+								
+								moduleIdArr[i] = moduleIdArr[i].replace('..\/', parentId.substr(parentId.lastIndexOf('/'), null));
+							}
+						}
+						
 					}else{
 						if (moduleIdArr[i].indexOf('./') === 0) {
-							moduleIdArr[i] = moduleIdArr[i].replace('\.\/', parentId.substr(0,parentId.lastIndexOf('/')+1));
+						   //TODO:if there are more than one ./
+							moduleIdArr[i] = moduleIdArr[i].replace('./', parentId.substr(0,parentId.lastIndexOf('/')+1));
 						}
 					}
 				}
@@ -264,8 +272,7 @@
 				return isString? moduleIdArr[0] : moduleIdArr;
 		}
 		
-		function require ( mixed ) {
-			//debugger
+		function require ( mixed ) {		
 			var reqModule;
 			if (this instanceof require) {
 			
@@ -345,7 +352,7 @@
 		}
 		
 		function requireString (module, callback) {
-		
+			
 			var plugin = null, pluginCallback;
 
 			if (module.split('!').length === 2) {
@@ -378,17 +385,17 @@
 							if(param){
 								defined[module].result = param;	
 							}							
-							//module is a string and is defined now, resolve it   
-							requireString(module, callback);
+							//module is a string and is defined now, resolve it
+							require(module, callback);
 							
 					};
 					
 					pluginCallback.fromText = function(moduleId, text){
-						
 						exec(text);
+						require(moduleId, callback);
 					};
 					
-					plugin.load([module], mmdRequire, pluginCallback, instanceConfig);
+					plugin.load(module, mmdRequire, pluginCallback, instanceConfig);
 				});
 			} else {
 

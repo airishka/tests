@@ -1,4 +1,4 @@
 //The refine plugin changes the word refine into define.
-refine({
+refine('a',{
     name: 'a'
 });
