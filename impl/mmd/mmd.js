@@ -188,7 +188,48 @@
 
 				resolveWaiting(name);
 			}
-		}	
+		}
+		
+		/**
+         * Given a relative module name, like mapval/something, normalize it to
+         * a real name that can be mapped to a path.
+         * @param {String} name the relative name
+         * @returns {String} normalized name
+         */
+		function usePathFallback(name) {
+
+            var nameParts = name && name.split('/'),
+                map = instanceConfig.paths,
+                mapValue, i, nameSegment, foundMap;
+
+            //Apply map config if available.
+            if (nameParts && map) {
+
+				//Find the longest name segment match in the config.
+				//So, do joins on the biggest to smallest lengths of baseParts.
+				for (i = nameParts.length; i > 0; i -= 1) {
+					nameSegment = nameParts.slice(0, i).join('/');
+
+                    //name segment has  config, find if it has one for
+                    //this name.
+                    mapValue = map[nameSegment];
+                    if (mapValue) {
+						//Match, update name to the new value.
+						foundMap = mapValue;
+						break;
+					}
+				}
+
+                if (foundMap) {
+                    nameParts.splice(0, i, foundMap);
+                    name = nameParts.join('/');
+					
+                }
+            }
+
+            return name;
+		}
+			
 		function processRelativePath(moduleId, parentId) {
 			var isString = 'string' === typeof moduleId,
 				moduleIdArr = !isString? moduleId : [moduleId],
@@ -214,7 +255,7 @@
 				if (instanceConfig.hasOwnProperty('paths')) {
 					for (i=0; i < mln; i++) {
 						if (instanceConfig.paths.hasOwnProperty(moduleIdArr[i])){
-		       				 moduleIdArr[i] = instanceConfig.paths[moduleIdArr[i]];
+		       				 moduleIdArr[i] = usePathFallback(moduleIdArr[i]);
 		    			}
 		    		}
 		   		}
@@ -231,7 +272,7 @@
 			
 			} else {
 				
-				//add path to moduleName if specifyed in config
+				//add path to moduleName if specified in config
 				reqModule = normalize(arguments[0]);
 				
 				if (typeof reqModule.sort === 'function'){
@@ -376,9 +417,6 @@
 		}
 		
 		function waitFor (module, callback) {
-		    // if(instanceConfig.hasOwnProperty('paths') && instanceConfig.paths.hasOwnProperty(module)){
-		        // module = instanceConfig.paths[module];
-		    // }
             
 			var waitingModule = waiting[module] = waiting[module] || { callbacks: [] },
 				ext = module.split('?')[0].split('#')[0].split('.').pop(),
