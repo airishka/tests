@@ -42,7 +42,6 @@
 			},
 			
 			'module': function(mod) {
-			    //debugger
 				return (mod.module = {
 					id: mod.name,
 					uri: mod.url,
@@ -143,7 +142,7 @@
 
 		
 		function define (name, dependencies, factory){
-
+		
 			var isAnon = false;
 
 			if ( typeof name !== 'string') {
@@ -204,30 +203,33 @@
 				
 			if(parentId) {
 				for (i=0; i < mln; i++) {
-					if (moduleIdArr[i].indexOf('./') === 0) {
-						moduleIdArr[i] = moduleIdArr[i].replace('\.\/', parentId.substr(0,parentId.lastIndexOf('/')+1));
+					if(moduleIdArr[i].indexOf('../') === 0){
+						moduleIdArr[i] = moduleIdArr[i].replace('\.\.\/', parentId.substr(parentId.lastIndexOf('/'), null));
+					}else{
+						if (moduleIdArr[i].indexOf('./') === 0) {
+							moduleIdArr[i] = moduleIdArr[i].replace('\.\/', parentId.substr(0,parentId.lastIndexOf('/')+1));
+						}
 					}
 				}
 			}
-			console.log('processRelativePath', moduleIdArr, 'parent: ', parentId);///
 			
 			return isString? moduleIdArr[0] : moduleIdArr;
 		}
 		
 		function normalize(moduleId) {
+		
 			var isString = 'string' === typeof moduleId,
-				moduleIdArr = !isString? moduleId : [moduleId],
+				moduleIdArr = !isString ? moduleId : [moduleId],
 				i, mln = moduleIdArr.length;
 				
 				if (instanceConfig.hasOwnProperty('paths')) {
 					for (i=0; i < mln; i++) {
 						if (instanceConfig.paths.hasOwnProperty(moduleIdArr[i])){
-		       				 moduleIdArr[i] = instanceConfig.paths[moduleIdArr[i]];
-		    			}
-		    		}
-		   		}
-		   		console.log('normalized', moduleIdArr);
-		   		return isString? moduleIdArr[0] : moduleIdArr;
+							 moduleIdArr[i] = instanceConfig.paths[moduleIdArr[i]];
+						}
+					}
+				}
+			return isString ? moduleIdArr[0] : moduleIdArr;
 		}
 		
 		function require ( mixed ) {
@@ -257,6 +259,7 @@
 				dependenciesLength = dependencies.length;
 				
 				//check for relative path
+				
 				dependencies = processRelativePath(dependencies, parent);
 				
 			function requireArrayItem(index){
@@ -292,29 +295,32 @@
 			}
 		}
 		
+		function exec(text) {
+			return eval(text);
+		}
+		
 		function requireString (module, callback) {
 		
-			var plugin = null;
+			var plugin = null, pluginCallback;
 
 			if (module.split('!').length === 2) {
 				plugin = module.split('!')[0];
 				module = module.split('!')[1];
 			}
 			
+			
 			if(plugin){
 				requireString(plugin, function(plugin){
 					
 					if (plugin && plugin.normalize) {
-                        //Plugin is loaded, use its normalize method.
-                        module = plugin.normalize(name, function (name) {
+                        module = plugin.normalize(module, function (name) {
                             return normalize(name);
                         });
                     } else {
-                        module = normalize(name);
+                        module = normalize(module);
                     }
 					
-					
-					plugin.load([module], mmdRequire, function(param){
+					pluginCallback = function(param){
 						    
 							//the module is already loaded, but has 
 							//no define call (css,text,html,plain js, smth)
@@ -330,7 +336,14 @@
 							//module is a string and is defined now, resolve it   
 							requireString(module, callback);
 							
-						}, instanceConfig);
+					};
+					
+					pluginCallback.fromText = function(moduleId, text){
+						
+						exec(text);
+					};
+					
+					plugin.load([module], mmdRequire, pluginCallback, instanceConfig);
 				});
 			} else {
   
@@ -415,14 +428,14 @@
 		
 		function load (module) {
 			requireString(instanceConfig.loader, function(loader){
-	
-				var callback = waiting[module].isModule ? function() {
+				
+				var callback = waiting[module].isModule ? function(ret) {
 				    var item;
 				    if(anonQueue.length){
                         item = anonQueue.shift();
                         define(arguments[1], item[1], item[2]); //
                     }
-				} : function() {
+				} : function(ret) {
 					resolveWaiting(module);
 				};
 
@@ -434,7 +447,7 @@
 						loader.load(waiting[module].url, callback);
 					}
 				}
-
+			
 	        });
 		}
 		
