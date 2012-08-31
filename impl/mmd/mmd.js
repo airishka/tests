@@ -34,11 +34,10 @@
 			'exports': function(mod) {
 
 				defined[mod.name].usingExports = true;
-			     
+
 				if (isDefined(mod.name)) {
-				    return (defined[mod.name].exports = defined[mod.name].result = {});
+					return (defined[mod.name].exports = defined[mod.name].result = {});
 				}
-				
 			},
 			
 			'module': function(mod) {
@@ -70,12 +69,12 @@
 		return (defined.hasOwnProperty(moduleId));
 	}
 	function isFunction(it) {
-        return ostring.call(it) === '[object Function]';
-    }
+		return ostring.call(it) === '[object Function]';
+	}
 
-    function isArray(it) {
-        return ostring.call(it) === '[object Array]';
-    }
+	function isArray(it) {
+		return ostring.call(it) === '[object Array]';
+	}
 
 
 	function MmdClass (defautlInstanceConfig) {
@@ -197,36 +196,36 @@
          */
 		function usePathFallback(name) {
 
-            var nameParts = name && name.split('/'),
-                map = instanceConfig.paths,
-                mapValue, i, nameSegment, foundMap;
+			var nameParts = name && name.split('/'),
+				map = instanceConfig.paths,
+				mapValue, i, nameSegment, foundMap;
 
-            //Apply map config if available.
-            if (nameParts && map) {
+			//Apply map config if available.
+			if (nameParts && map) {
 
 				//Find the longest name segment match in the config.
 				//So, do joins on the biggest to smallest lengths of baseParts.
 				for (i = nameParts.length; i > 0; i -= 1) {
 					nameSegment = nameParts.slice(0, i).join('/');
 
-                    //name segment has  config, find if it has one for
-                    //this name.
-                    mapValue = map[nameSegment];
-                    if (mapValue) {
+					//name segment has  config, find if it has one for
+					//this name.
+					mapValue = map[nameSegment];
+					if (mapValue) {
 						//Match, update name to the new value.
 						foundMap = mapValue;
 						break;
 					}
 				}
 
-                if (foundMap) {
-                    nameParts.splice(0, i, foundMap);
-                    name = nameParts.join('/');
+				if (foundMap) {
+					nameParts.splice(0, i, foundMap);
+					name = nameParts.join('/');
 					
-                }
-            }
+				}
+			}
 
-            return name;
+			return name;
 		}
 			
 		function processRelativePath(moduleId, parentId) {
@@ -289,21 +288,31 @@
 		
 		function requireArray (parent, dependencies, callback) {
 			var results = [], forIndex,
-				dependenciesLength = dependencies.length;
-				
+				dependenciesLength = dependencies.length,
+				depResultsFilled = true;
+					
 				//check for relative path
-				
 				dependencies = processRelativePath(dependencies, parent);
 				
 			function requireArrayItem(index){
-				var moduleId = dependencies[index];
+				var moduleId = dependencies[index],
+					hasNotCompletedResult;
 				
+
 				if (!commonJsHandlers[moduleId])  {  
 					requireString(moduleId, function(result){
 						results[index] = result;
-						
+							
 						if (dependenciesLength === results.length) {
-							callback.apply(null, results)
+							if (!parent) {
+								for (var e=0; e < results.length; e++) {
+								  if (!results[e]) hasNotCompletedResult = true;
+								};
+							}
+							
+							if (!hasNotCompletedResult) {
+								callback.apply(null, results);
+							}
 						}
 					});
 				} else {
@@ -317,7 +326,7 @@
 			}		
 			
 			if (0 === dependenciesLength) {
-				callback.apply(null, results);			
+				callback.apply(null, results);
 					
 			} else {
 				if ( isDefined(parent) ) { 
@@ -349,15 +358,15 @@
 				requireString(plugin, function(plugin){
 					
 					if (plugin && plugin.normalize) {
-                        module = plugin.normalize(module, function (name) {
-                            return normalize(name);
-                        });
-                    } else {
-                        module = normalize(module);
-                    }
+						module = plugin.normalize(module, function (name) {
+							return normalize(name);
+						});
+					} else {
+						module = normalize(module);
+					}
 					
 					pluginCallback = function(param){
-						    
+					
 							//the module is already loaded, but has 
 							//no define call (css,text,html,plain js, smth)
 							//then we should define it, to prevent load the same file as a script
@@ -382,7 +391,7 @@
 					plugin.load([module], mmdRequire, pluginCallback, instanceConfig);
 				});
 			} else {
-  
+
 				if (isDefined(module)) {
 					if (defined[module].hasOwnProperty('result')) {
 						if ('function' === typeof callback) 
@@ -410,7 +419,7 @@
 		
 		function resolveRequire(module, callback, args) {
 			args = args || [];
-
+			
 			if ("function" === typeof defined[module].factory) {
 				defined[module].result = defined[module].factory.apply(null, args);
 				
@@ -421,7 +430,7 @@
 			if (defined[module].usingExports) {
 				defined[module].result = extend(defined[module].result || {}, defined[module].exports);
 			}
-			
+
 			if ('function' === typeof callback) {
 				callback.call(null, defined[module].result);
 			} 
@@ -430,7 +439,7 @@
 		}
 		
 		function waitFor (module, callback) {
-            
+
 			var waitingModule = waiting[module] = waiting[module] || { callbacks: [] },
 				ext = module.split('?')[0].split('#')[0].split('.').pop(),
 				isModule = true,
@@ -443,16 +452,16 @@
 			  } 
 			};
 
-	        extend( waitingModule, {
-	            name: module,
-                isModule: isModule, //(-1 === module.lastIndexOf('.js')),
-                contextRequire: require,
-                url:	checkUrl(module, isModule)
-	        });
-	        
-	        waitingModule.callbacks.push(callback);
-	        
-	        if ('undefined' === typeof waiting[module].isLoading 
+			extend( waitingModule, {
+				name: module,
+				isModule: isModule, //(-1 === module.lastIndexOf('.js')),
+				contextRequire: require,
+				url:	checkUrl(module, isModule)
+			});
+
+			waitingModule.callbacks.push(callback);
+
+			if ('undefined' === typeof waiting[module].isLoading 
 				&& module !== instanceConfig.loader
 				&& instanceConfig.loader) {
 					load(module);
@@ -462,15 +471,21 @@
 		function load (module) {
 			requireString(instanceConfig.loader, function(loader){
 				
-				var callback = waiting[module].isModule ? function(ret) {
-				    var item;
-				    if(anonQueue.length){
-                        item = anonQueue.shift();
-                        define(arguments[1], item[1], item[2]); //
-                    }
-				} : function(ret) {
-					resolveWaiting(module);
-				};
+				var callback = waiting[module].isModule ?
+					function(ret) {
+						var item;
+							//console.group('anon '+ module + ' ==' +arguments[1] );///
+						if(anonQueue.length){
+								//console.log(anonQueue.length, 'anonQueue' ,anonQueue)///
+							item = anonQueue.shift();
+								//console.log('item', item);///
+							//console.groupEnd();
+							define(arguments[1], item[1], item[2]); //
+						}
+					} : 
+					function(ret) {
+						resolveWaiting(module);
+					};
 
 				if (!waiting[module].isLoading) {
 					waiting[module].isLoading = instanceConfig.loader;
@@ -481,7 +496,7 @@
 					}
 				}
 			
-	        });
+			});
 		}
 		
 		function resolveWaiting(module){
@@ -504,7 +519,7 @@
 				for (counter=0; counter < waitingCallbacksLength; counter++) {
 					waiting[module].contextRequire(module, waiting[module].callbacks[counter]);
 				}
-				
+
 				delete(waiting[module]);
 			}			
 		}
