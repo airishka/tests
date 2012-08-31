@@ -1,7 +1,7 @@
 
 //Map the configure({}) call to loader-specific call.
 var requireInst = new require({
-	loader: 'loader.blocking' 
+	loader: 'loader.nonBlocking' 
 }), 
 	config = requireInst.configure,
 
