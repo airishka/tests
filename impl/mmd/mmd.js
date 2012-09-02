@@ -234,7 +234,7 @@
 				i, j, modArr, mln = moduleIdArr.length;
 				
 			if(parentId) {
-				for (i=0; i < mln; i++) {
+				for (i=0; i < mln; i += 1) {
 					if(moduleIdArr[i].indexOf('../') === 0){
 							modArr = moduleIdArr[i].split('/');
 						for(j=0; j < modArr.length; j++){
@@ -308,11 +308,13 @@
 
 				if (!commonJsHandlers[moduleId])  {  
 					requireString(moduleId, function(result){
+						var e;
+					
 						results[index] = result;
-							
+				
 						if (dependenciesLength === results.length) {
 							if (!parent) {
-								for (var e=0; e < results.length; e++) {
+								for (e=0; e < results.length; e++) {
 								  if (!results[e]) hasNotCompletedResult = true;
 								};
 							}
@@ -321,7 +323,7 @@
 								callback.apply(null, results);
 							}
 						}
-					});
+					}, parent);
 				} else {
 					//parent module is already required
 					results[index] = commonJsHandlers[moduleId].call(null, waiting[parent]);
@@ -351,9 +353,10 @@
 			return eval(text);
 		}
 		
-		function requireString (module, callback) {
+		function requireString (module, callback, parent) {
 			
-			var plugin = null, pluginCallback;
+			var plugin = null, pluginCallback,
+				parent = parent || null;
 
 			if (module.split('!').length === 2) {
 				plugin = module.split('!')[0];
@@ -362,14 +365,13 @@
 			
 			
 			if(plugin){
-				requireString(plugin, function(plugin){
-					
+				requireString(plugin, function(plugin){					
 					if (plugin && plugin.normalize) {
-						module = plugin.normalize(module, function (name) {
-							return normalize(name);
+						module = plugin.normalize(module, function (name) {					
+							return processRelativePath(name, parent);
 						});
 					} else {
-						module = normalize(module);
+						module = processRelativePath(module, parent);
 					}
 					
 					pluginCallback = function(param){
@@ -453,10 +455,10 @@
 				i;
 			//if module has an extension - it is not a module
 			for (i=FILE_WHTITE_LIST.length-1; i >= 0; i--) {
-			  if(FILE_WHTITE_LIST[i] == ext) { 
-			  	isModule = false;
-			  	break;
-			  } 
+				if(FILE_WHTITE_LIST[i] === ext) { 
+				isModule = false;
+				break;
+				} 
 			};
 
 			extend( waitingModule, {
