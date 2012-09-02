@@ -363,7 +363,6 @@
 				module = module.split('!')[1];
 			}
 			
-			
 			if(plugin){
 				requireString(plugin, function(plugin){					
 					if (plugin && plugin.normalize) {
@@ -375,37 +374,33 @@
 					}
 					
 					pluginCallback = function(param){
-					
 							//the module is already loaded, but has 
 							//no define call (css,text,html,plain js, smth)
 							//then we should define it, to prevent load the same file as a script
 							// (it doesn't have dependencies and factory)
 							//now the module name doesn't include plugin prefix
-							if (!isDefined(module)) { 
+							if (!isDefined(module)) { 								
 								define(module, [], null);
 							}
 							if(param){
-								defined[module].result = param;	
+								defined[module].result = param;
 							}							
-							//module is a string and is defined now, resolve it
-							require(module, callback);
-							
+							//module is a string and is defined now, resolve it							
+							requireString(module, callback, parent);
 					};
 					
 					pluginCallback.fromText = function(moduleId, text){
 						exec(text);
-						require(moduleId, callback);
+						requireString(moduleId, callback);
 					};
-					
 					plugin.load(module, mmdRequire, pluginCallback, instanceConfig);
-				});
-			} else {
-
+				}, parent);
+			} else {				
 				if (isDefined(module)) {
 					if (defined[module].hasOwnProperty('result')) {
 						if ('function' === typeof callback) 
 							callback.call(null, defined[module].result);
-						
+													
 						return defined[module].result;
 					
 					} else {
