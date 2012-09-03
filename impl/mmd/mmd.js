@@ -27,7 +27,7 @@
 		ostring = Object.prototype.toString,
 
 		commonJsHandlers = {
-			'require': function(mod) {		
+			'require': function(mod) {
 				return mod && mod.contextRequire || mmdRequire;
 			},
 			 
@@ -133,7 +133,7 @@
 
 		
 		function define (name, dependencies, factory){
-		
+			
 			var isAnon = false;
 
 			if ( typeof name !== 'string') {
@@ -147,6 +147,7 @@
 				factory = dependencies;
 				dependencies = [];
 			}
+		
 			
 			//If no dependencies, and factory is a function, then figure out if it a
 			//CommonJS thing with dependencies.
@@ -231,32 +232,32 @@
 		function processRelativePath(moduleId, parentId) {
 			var isString = 'string' === typeof moduleId,
 				moduleIdArr = !isString? moduleId : [moduleId],
-				i, j, modArr, mln = moduleIdArr.length;
+				i, j, modArr, mln = moduleIdArr.length,
+			
+				parentPath = parentId ? parentId.substr(0,parentId.lastIndexOf('/')+1) : "";
 				
-			if(parentId) {
 				for (i=0; i < mln; i += 1) {
 					if(moduleIdArr[i].indexOf('../') === 0){
 							modArr = moduleIdArr[i].split('/');
 						for(j=0; j < modArr.length; j++){
 							if(modArr[j] === '..'){
-								
+								//TODO:if there are more than one ./
 								moduleIdArr[i] = moduleIdArr[i].replace('..\/', parentId.substr(parentId.lastIndexOf('/'), null));
 							}
 						}
 						
 					}else{
 						if (moduleIdArr[i].indexOf('./') === 0) {
-						   //TODO:if there are more than one ./
-							moduleIdArr[i] = moduleIdArr[i].replace('./', parentId.substr(0,parentId.lastIndexOf('/')+1));
+						   
+							moduleIdArr[i] = moduleIdArr[i].replace('./', parentPath);
 						}
 					}
 				}
-			}
 			
 			return isString? moduleIdArr[0] : moduleIdArr;
 		}
 		
-		function normalize(moduleId) {
+		function normalize(moduleId, parent) {
 		
 			var isString = 'string' === typeof moduleId,
 				moduleIdArr = !isString ? moduleId : [moduleId],
@@ -269,10 +270,15 @@
 						}
 					}
 				}
+				//check for relative path
+				moduleIdArr = processRelativePath(moduleIdArr, parent);
+				
 				return isString? moduleIdArr[0] : moduleIdArr;
 		}
 		
-		function require ( mixed ) {		
+		function require ( mixed ) {
+
+			debugger
 			var reqModule;
 			if (this instanceof require) {
 			
@@ -281,7 +287,8 @@
 			} else {
 				
 				//add path to moduleName if specified in config
-				reqModule = normalize(arguments[0]);
+				//check for relative path
+				reqModule = normalize(arguments[0], null);
 				
 				if (typeof reqModule.sort === 'function'){
 					requireArray(null, reqModule, arguments[1]);
@@ -297,9 +304,9 @@
 			var results = [], forIndex,
 				dependenciesLength = dependencies.length,
 				depResultsFilled = true;
-					
-				//check for relative path
-				dependencies = processRelativePath(dependencies, parent);
+				
+			//check for relative path
+			dependencies = processRelativePath(dependencies, parent);
 				
 			function requireArrayItem(index){
 				var moduleId = dependencies[index],
@@ -364,6 +371,8 @@
 			}
 			
 			if(plugin){
+				plugin = processRelativePath(plugin, parent);
+				
 				requireString(plugin, function(plugin){					
 					if (plugin && plugin.normalize) {
 						module = plugin.normalize(module, function (name) {					
@@ -386,7 +395,7 @@
 								defined[module].result = param;
 							}							
 							//module is a string and is defined now, resolve it							
-							requireString(module, callback, parent);
+							requireString(module, callback);
 					};
 					
 					pluginCallback.fromText = function(moduleId, text){
@@ -503,7 +512,7 @@
 			});
 		}
 		
-		function resolveWaiting(module){
+		function resolveWaiting(module) {
 			
 			var counter, waitingCallbacksLength;
 			
