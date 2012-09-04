@@ -28,9 +28,9 @@
 
 		commonJsHandlers = {
 			'require': function(mod) {
-				return mod && mod.contextRequire || mmdRequire;
+				return (mod && mod.contextRequire) || mmdRequire;
 			},
-			 
+
 			'exports': function(mod) {
 
 				defined[mod.name].usingExports = true;
@@ -109,8 +109,8 @@
 			var config = {},
 				mmdObj;
 				
-			config = extend(config, instanceConfig)
-			config = extend(config, configObj)
+			config = extend(config, instanceConfig);
+			config = extend(config, configObj);
 			
 			mmdObj = new MmdClass(config);
 			//for required require
@@ -248,7 +248,6 @@
 						
 					}else{
 						if (moduleIdArr[i].indexOf('./') === 0) {
-						   
 							moduleIdArr[i] = moduleIdArr[i].replace('./', parentPath);
 						}
 					}
@@ -278,7 +277,7 @@
 		
 		function require ( mixed ) {
 
-			debugger
+			
 			var reqModule;
 			if (this instanceof require) {
 			
@@ -322,8 +321,8 @@
 						if (dependenciesLength === results.length) {
 							if (!parent) {
 								for (e=0; e < results.length; e++) {
-								  if (!results[e]) hasNotCompletedResult = true;
-								};
+									if (!results[e]) hasNotCompletedResult = true;
+								}
 							}
 							
 							if (!hasNotCompletedResult) {
@@ -362,8 +361,9 @@
 		
 		function requireString (module, callback, parent) {
 			
-			var plugin = null, pluginCallback,
-				parent = parent || null;
+			var plugin = null, pluginCallback;
+			
+			parent = parent || null;
 
 			if (module.split('!').length === 2) {
 				plugin = module.split('!')[0];
@@ -373,9 +373,9 @@
 			if(plugin){
 				plugin = processRelativePath(plugin, parent);
 				
-				requireString(plugin, function(plugin){					
+				requireString(plugin, function(plugin){
 					if (plugin && plugin.normalize) {
-						module = plugin.normalize(module, function (name) {					
+						module = plugin.normalize(module, function (name) {
 							return processRelativePath(name, parent);
 						});
 					} else {
@@ -388,13 +388,13 @@
 							//then we should define it, to prevent load the same file as a script
 							// (it doesn't have dependencies and factory)
 							//now the module name doesn't include plugin prefix
-							if (!isDefined(module)) { 								
+							if (!isDefined(module)) {
 								define(module, [], null);
 							}
 							if(param){
 								defined[module].result = param;
 							}							
-							//module is a string and is defined now, resolve it							
+							//module is a string and is defined now, resolve it		
 							requireString(module, callback);
 					};
 					
@@ -404,12 +404,12 @@
 					};
 					plugin.load(module, mmdRequire, pluginCallback, instanceConfig);
 				}, parent);
-			} else {				
+			} else {
 				if (isDefined(module)) {
 					if (defined[module].hasOwnProperty('result')) {
 						if ('function' === typeof callback) 
 							callback.call(null, defined[module].result);
-													
+
 						return defined[module].result;
 					
 					} else {
@@ -418,7 +418,7 @@
 							resolveRequire(module, callback);
 						} else {
 							requireArray(module, defined[module].dependencies, function() {
-								 resolveRequire(module, callback, arguments);
+								resolveRequire(module, callback, arguments);
 							});
 						}
 
@@ -434,10 +434,12 @@
 			args = args || [];
 			
 			if ("function" === typeof defined[module].factory) {
+
 				defined[module].result = defined[module].factory.apply(null, args);
-				
+				console.log(module, 'call factory with args', defined[module].factory.length, args.length);
 			} else {
 				defined[module].result = defined[module].factory;
+				console.log(module, 'use factory ohne args');
 			}
 			
 			if (defined[module].usingExports) {
@@ -460,10 +462,10 @@
 			//if module has an extension - it is not a module
 			for (i=FILE_WHTITE_LIST.length-1; i >= 0; i--) {
 				if(FILE_WHTITE_LIST[i] === ext) { 
-				isModule = false;
-				break;
+					isModule = false;
+					break;
 				} 
-			};
+			}
 
 			extend( waitingModule, {
 				name: module,
@@ -474,9 +476,9 @@
 
 			waitingModule.callbacks.push(callback);
 
-			if ('undefined' === typeof waiting[module].isLoading 
-				&& module !== instanceConfig.loader
-				&& instanceConfig.loader) {
+			if ('undefined' === typeof waiting[module].isLoading && 
+				module !== instanceConfig.loader &&
+				instanceConfig.loader) {
 					load(module);
 			}
 		}
