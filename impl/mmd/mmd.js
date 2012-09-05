@@ -19,6 +19,7 @@
 		waiting = {},
 		mmdRequire,
 		anonQueue = [],
+		plugins = {},
 		FILE_WHTITE_LIST = ['js','json','jsonp','css'], 
 		ANON_DATA_ATTR = "data-req_module",
 		factoryConfig = {},
@@ -238,13 +239,13 @@
 				
 				for (i=0; i < mln; i += 1) {
 					if(moduleIdArr[i].indexOf('../') === 0){
-							modArr = moduleIdArr[i].split('/');
-						for(j=0; j < modArr.length; j++){
-							if(modArr[j] === '..'){
+							//modArr = moduleIdArr[i].split('/');
+						//for(j=0; j < modArr.length; j++){
+							if(-1 !== moduleIdArr[i].indexOf('..')){
 								//TODO:if there are more than one ./
-								moduleIdArr[i] = moduleIdArr[i].replace('..\/', parentId.substr(parentId.lastIndexOf('/'), null));
+								moduleIdArr[i] = moduleIdArr[i].replace('..\/', parentId.substr(parentId.lastIndexOf('/'), ''));
 							}
-						}
+						//}
 						
 					}else{
 						if (moduleIdArr[i].indexOf('./') === 0) {
@@ -276,7 +277,7 @@
 		}
 		
 		function require ( mixed ) {
-
+debugger
 			var reqModule;
 			if (this instanceof require) {
 			
@@ -301,13 +302,14 @@
 		function requireArray (parent, dependencies, callback) {
 			var results = [], forIndex,
 				dependenciesLength = dependencies.length,
-				depResultsFilled = true;
-				
+				depResultsFilled = true, 
+				deps = dependencies.slice(0);
+							
 			//check for relative path
-			dependencies = processRelativePath(dependencies, parent);
+			deps = processRelativePath(deps, parent);
 				
 			function requireArrayItem(index){
-				var moduleId = dependencies[index],
+				var moduleId = deps[index],
 					hasNotCompletedResult;
 				
 
@@ -360,8 +362,7 @@
 		}
 		
 		function requireString (module, callback, parent) {
-			
-			var plugin = null, pluginCallback;
+			var plugin = null, pluginCallback, pluginName;
 			
 			parent = parent || null;
 
@@ -371,39 +372,50 @@
 			}
 			
 			if(plugin){
-				plugin = processRelativePath(plugin, parent);
+				//plugin = processRelativePath(plugin, parent);
+				pluginName = plugin;
 				
-				requireString(plugin, function(plugin){
-					if (plugin && plugin.normalize) {
-						module = plugin.normalize(module, function (name) {
-							return processRelativePath(name, parent);
-						});
-					} else {
-						module = processRelativePath(module, parent);
+				pluginCallback = function(param){
+									//the module is already loaded, but has 
+									//no define call (css,text,html,plain js, smth)
+									//then we should define it, to prevent load the same file as a script
+									// (it doesn't have dependencies and factory)
+									//now the module name doesn't include plugin prefix
+									if (!isDefined(module)) {
+										define(module, [], null);
+									}
+									if(param){
+										defined[module].result = param;
+									}							
+									//module is a string and is defined now, resolve it		
+									requireString(module, callback);
+							};
+							
+				pluginCallback.fromText = function(moduleId, text){
+								exec(text);
+								requireString(moduleId, callback);
+				};
+							
+				if (plugin && plugin.normalize) {
+								module = plugin.normalize(module, function (name) {
+									return processRelativePath(name, parent);
+								});
+				} else {
+								module = processRelativePath(module, parent);
+				}			
+				
+							
+				if(plugins[pluginName]){
+					
+					plugins[pluginName].load(module, mmdRequire, pluginCallback, instanceConfig);
+				}else{
+						requireString(plugin, function(plugin){
+							plugins[pluginName] = plugin;
+							
+									
+							plugin.load(module, mmdRequire, pluginCallback, instanceConfig);
+						}, parent);
 					}
-					
-					pluginCallback = function(param){
-							//the module is already loaded, but has 
-							//no define call (css,text,html,plain js, smth)
-							//then we should define it, to prevent load the same file as a script
-							// (it doesn't have dependencies and factory)
-							//now the module name doesn't include plugin prefix
-							if (!isDefined(module)) {
-								define(module, [], null);
-							}
-							if(param){
-								defined[module].result = param;
-							}							
-							//module is a string and is defined now, resolve it		
-							requireString(module, callback);
-					};
-					
-					pluginCallback.fromText = function(moduleId, text){
-						exec(text);
-						requireString(moduleId, callback);
-					};
-					plugin.load(module, mmdRequire, pluginCallback, instanceConfig);
-				}, parent);
 			} else {
 				if (isDefined(module)) {
 					if (defined[module].hasOwnProperty('result')) {
