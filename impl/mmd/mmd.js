@@ -277,7 +277,6 @@
 		
 		function require ( mixed ) {
 
-			
 			var reqModule;
 			if (this instanceof require) {
 			
@@ -313,6 +312,7 @@
 				
 
 				if (!commonJsHandlers[moduleId])  {  
+					// console.log('item', index, ':', moduleId);
 					requireString(moduleId, function(result){
 						var e;
 					
@@ -324,7 +324,7 @@
 									if (!results[e]) hasNotCompletedResult = true;
 								}
 							}
-							
+							//wait for all circular dependencies to be resolved
 							if (!hasNotCompletedResult) {
 								callback.apply(null, results);
 							}
@@ -415,7 +415,8 @@
 					} else {
 						
 						if (0 === defined[module].dependencies.length || defined[module].deps_required) {
-							resolveRequire(module, callback);
+							//if deps_required wait instead of immediately resolve? how long?
+							setTimeout(function(){resolveRequire(module, callback)}, 0);
 						} else {
 							requireArray(module, defined[module].dependencies, function() {
 								resolveRequire(module, callback, arguments);
@@ -436,10 +437,10 @@
 			if ("function" === typeof defined[module].factory) {
 
 				defined[module].result = defined[module].factory.apply(null, args);
-				console.log(module, 'call factory with args', defined[module].factory.length, args.length);
+				// console.log(module, 'call factory' , defined[module].factory.length,'with args', args.length);
 			} else {
 				defined[module].result = defined[module].factory;
-				console.log(module, 'use factory ohne args');
+				// console.log(module, 'use factory ohne args');
 			}
 			
 			if (defined[module].usingExports) {
