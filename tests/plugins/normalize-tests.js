@@ -1,5 +1,5 @@
-go(     ['require', 'earth', 'prime/earth'],
-function (require,   earth,   primeEarth) {
+go(     ['require', 'earth'],//, 'prime/earth'],
+function (require,   earth) {
 
     doh.register(
         "pluginsNormalize",
@@ -8,9 +8,9 @@ function (require,   earth,   primeEarth) {
                 t.is("a", earth.getA().name);
                 t.is("c", earth.getC().name);
                 t.is("b", earth.getB().name);
-                t.is("aPrime", primeEarth.getA().name);
-                t.is("cPrime", primeEarth.getC().name);
-                t.is("bPrime", primeEarth.getB().name);
+                // t.is("aPrime", primeEarth.getA().name);
+                // t.is("cPrime", primeEarth.getC().name);
+                // t.is("bPrime", primeEarth.getB().name);
              }
         ]
     );
