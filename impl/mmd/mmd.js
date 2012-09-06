@@ -299,7 +299,6 @@
 			} else {
 				
 				//add path to moduleName if specified in config
-				//check for relative path
 				reqModule = normalize(arguments[0], null);
 
 				if (typeof reqModule.sort === 'function'){
