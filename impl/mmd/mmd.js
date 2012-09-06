@@ -286,7 +286,7 @@
 		}
 		
 		function require ( mixed ) {
-
+			
 			var reqModule;
 			if (this instanceof require) {
 			
@@ -297,7 +297,7 @@
 				//add path to moduleName if specified in config
 				//check for relative path
 				reqModule = normalize(arguments[0], null);
-				
+
 				if (typeof reqModule.sort === 'function'){
 					requireArray(null, reqModule, arguments[1]);
 					
@@ -387,7 +387,6 @@
 									//then we should define it, to prevent load the same file as a script
 									// (it doesn't have dependencies and factory)
 									//now the module name doesn't include plugin prefix
-									
 									if (!isDefined(originalName)) {
 										define(originalName, [], null);
 									}
@@ -395,15 +394,17 @@
 										defined[originalName].result = param;
 									}							
 									//module is a string and is defined now, resolve it	
-									//console.log(module, originalName, 'callback', callback);
-									
-									requireString(parent, callback);
-									
-									//console.log('Parent', parent)
-									//debugger
-									//defined[parent].result = defined[parent].factory();
-								//	require(parent);
-									//requireArray(parent, defined[parent].dependencies, defined[parent].factory);
+									if(parent){
+										requireString(parent, callback);
+									}else{
+										if (!isDefined(module)) {
+										define(module, [], null);
+										}
+										if(param){
+											defined[module].result = param;
+										}
+										requireString(module, callback);
+									}
 							};
 							
 				pluginCallback.fromText = function(moduleId, text){
@@ -421,8 +422,7 @@
 						} else {
 										module = processRelativePath(module, parent);
 						}		
-						
-								
+	
 						plugin.load(module, mmdRequire, pluginCallback, instanceConfig);
 					}, parent);
 				}else{

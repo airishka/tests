@@ -46,8 +46,8 @@
         },
 
         plugins: function () {
-            //reg('plugins/double');
-            //reg('plugins/fromText');
+            reg('plugins/double');
+            reg('plugins/fromText');
             reg('plugins/normalize');
         },
 

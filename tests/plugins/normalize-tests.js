@@ -1,5 +1,5 @@
 go(     ['require', 'earth', 'prime/earth'],
-function (require,   earth) {
+function (require,  earth,  primeEarth) {
 
     doh.register(
         "pluginsNormalize",
