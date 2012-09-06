@@ -234,13 +234,19 @@
 			
 			var isString = 'string' === typeof moduleId,
 				moduleIdArr = !isString? moduleId : [moduleId],
-				i, j, modArr, mln = moduleIdArr.length, parentPathPartsArr, 
-			
-				parentPath = parentId ? parentId.substr(0,parentId.lastIndexOf('/')+1) : "";
+				i, j, modArr, mln = moduleIdArr.length, parentPathPartsArr, parentPath; 
+				
+				function getParentPath(needTrailingSlash) {
+					return parentId ? parentId.substr(0, parentId.lastIndexOf('/')+(!(!!needTrailingSlash)*1)) : "";
+				}
+
+				function addTrailingSlash(url){
+					return url && url.length-1 !== url.lastIndexOf('/')? url+'/': url;
+				}
 				
 				for (i=0; i < mln; i += 1) {
 					if(moduleIdArr[i].indexOf('../') === 0){
-							parentPath = parentPath.substr(0, parentPath.lastIndexOf('/'));
+							parentPath = getParentPath(true);
 							parentPathPartsArr = parentPath.split('/');
 							
 							modArr = moduleIdArr[i].split('/');
@@ -252,13 +258,11 @@
 								}
 							}
 
-															
-							moduleIdArr[i] = parentPathPartsArr.join('/') + modArr.join('/');
-							console.log('moduleIdArr',  moduleIdArr[i]);
+							moduleIdArr[i] = addTrailingSlash(parentPathPartsArr.join('/')) + modArr.join('/');
 						
 					}else{
 						if (moduleIdArr[i].indexOf('./') === 0) {
-							moduleIdArr[i] = moduleIdArr[i].replace('./', parentPath);
+							moduleIdArr[i] = moduleIdArr[i].replace('./', getParentPath());
 						}
 					}
 				}
