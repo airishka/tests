@@ -234,7 +234,8 @@
 			
 			var isString = 'string' === typeof moduleId,
 				moduleIdArr = !isString? moduleId : [moduleId],
-				i, j, modArr, mln = moduleIdArr.length, parentPathPartsArr, parentPath; 
+				mln = moduleIdArr.length,
+				i, j, modArr, parentPathPartsArr, parentPath;
 				
 				function getParentPath(needTrailingSlash) {
 					return parentId ? parentId.substr(0, parentId.lastIndexOf('/')+(!!needTrailingSlash*1)) : "";
@@ -270,7 +271,7 @@
 			return isString? moduleIdArr[0] : moduleIdArr;
 		}
 		
-		function normalize(moduleId, parent) {
+		function normalize(moduleId) {
 		
 			var isString = 'string' === typeof moduleId,
 				moduleIdArr = !isString ? moduleId : [moduleId],
@@ -283,14 +284,12 @@
 						}
 					}
 				}
-				//check for relative path
-				//moduleIdArr = processRelativePath(moduleIdArr, parent);
 				
 				return isString? moduleIdArr[0] : moduleIdArr;
 		}
 		
 		function require ( mixed ) {
-			
+
 			var reqModule;
 			if (this instanceof require) {
 			
@@ -299,7 +298,7 @@
 			} else {
 				
 				//add path to moduleName if specified in config
-				reqModule = normalize(arguments[0], null);
+				 reqModule = normalize(arguments[0], null);
 
 				if (typeof reqModule.sort === 'function'){
 					requireArray(null, reqModule, arguments[1]);
@@ -314,8 +313,7 @@
 		function requireArray (parent, dependencies, callback) {
 			var results = [], forIndex,
 				dependenciesLength = dependencies.length,
-				depResultsFilled = true, 
-				deps = dependencies.slice(0);
+				deps = dependencies.slice(0);//clone deps
 				
 			function requireArrayItem(index){
 				var moduleId = deps[index],
@@ -329,7 +327,8 @@
 						results[index] = result;
 				
 						if (dependenciesLength === results.length) {
-							if (!parent) {
+							
+							if (!parent && waiting[moduleId] && waiting[moduleId].isModule) {
 								for (e=0; e < results.length; e++) {
 									if (!results[e]) hasNotCompletedResult = true;
 								}
@@ -372,6 +371,8 @@
 		}
 		
 		function requireString (module, callback, parent) {
+			//use config path callback
+			module = normalize(module);
 			
 			var pluginName = null, pluginCallback, originalName = module;
 						
@@ -429,7 +430,25 @@
 						plugin.load(module, mmdRequire, pluginCallback, instanceConfig);
 					}, parent);
 				}else{
-					return defined[originalName].result;
+					//TODO: please do DRY! ! !
+					 if (defined[originalName].hasOwnProperty('result')) {
+						if ('function' === typeof callback) {
+							callback.call(null, defined[module].result);
+						}
+
+						return defined[originalName].result;
+					} else {
+						if (0 === defined[originalName].dependencies.length || defined[originalName].deps_required) {
+							//if deps_required wait instead of immediately resolve? how long?
+							resolveRequire(originalName, callback);
+						} else {
+							requireArray(originalName, defined[originalName].dependencies, function() {
+								resolveRequire(originalName, callback, arguments);
+							});
+						}
+					}
+					///endtodo ! ! !
+
 				}
 					
 			} else {
@@ -500,7 +519,8 @@
 				name: module,
 				isModule: isModule, //(-1 === module.lastIndexOf('.js')),
 				contextRequire: require,
-				url: processRelativePath(checkUrl(module, isModule), parent),
+				//first process relative path and then add base url to it
+				url: checkUrl(processRelativePath(module, parent), isModule),
 				normalizeModuleId: normalizeModuleId
 			});
 
