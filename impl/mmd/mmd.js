@@ -445,7 +445,7 @@
 						
 						if (0 === defined[module].dependencies.length || defined[module].deps_required) {
 							//if deps_required wait instead of immediately resolve? how long?
-							setTimeout(function(){resolveRequire(module, callback)}, 0);
+							resolveRequire(module, callback);
 						} else {
 							requireArray(module, defined[module].dependencies, function() {
 								resolveRequire(module, callback, arguments);
