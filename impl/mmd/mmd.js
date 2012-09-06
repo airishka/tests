@@ -230,21 +230,31 @@
 		}
 			
 		function processRelativePath(moduleId, parentId) {
+			if(!moduleId) return moduleId;
+			
 			var isString = 'string' === typeof moduleId,
 				moduleIdArr = !isString? moduleId : [moduleId],
-				i, j, modArr, mln = moduleIdArr.length,
+				i, j, modArr, mln = moduleIdArr.length, parentPathPartsArr, 
 			
 				parentPath = parentId ? parentId.substr(0,parentId.lastIndexOf('/')+1) : "";
 				
 				for (i=0; i < mln; i += 1) {
 					if(moduleIdArr[i].indexOf('../') === 0){
-							//modArr = moduleIdArr[i].split('/');
-						//for(j=0; j < modArr.length; j++){
-							if(-1 !== moduleIdArr[i].indexOf('..')){
-								//TODO:if there are more than one ./
-								moduleIdArr[i] = moduleIdArr[i].replace('..\/', parentId.substr(parentId.lastIndexOf('/'), ''));
+							parentPath = parentPath.substr(0, parentPath.lastIndexOf('/'));
+							parentPathPartsArr = parentPath.split('/');
+							
+							modArr = moduleIdArr[i].split('/');
+							
+							for (j=0; j < modArr.length; j += 1) {
+								if(-1 !== modArr[j].indexOf('..')){
+									parentPathPartsArr.pop();
+									modArr.splice(j, 1);
+								}
 							}
-						//}
+
+															
+							moduleIdArr[i] = parentPathPartsArr.join('/') + modArr.join('/');
+							console.log('moduleIdArr',  moduleIdArr[i]);
 						
 					}else{
 						if (moduleIdArr[i].indexOf('./') === 0) {
@@ -303,17 +313,13 @@
 				dependenciesLength = dependencies.length,
 				depResultsFilled = true, 
 				deps = dependencies.slice(0);
-							
-			//check for relative path
-			//deps = processRelativePath(deps, parent);
 				
 			function requireArrayItem(index){
 				var moduleId = deps[index],
 					hasNotCompletedResult;
 				
 
-				if (!commonJsHandlers[moduleId])  {  
-					// console.log('item', index, ':', moduleId);
+				if (!commonJsHandlers[moduleId])  { 
 					requireString(moduleId, function(result){
 						var e;
 					
@@ -363,19 +369,17 @@
 		}
 		
 		function requireString (module, callback, parent) {
+			
 			var pluginName = null, pluginCallback, originalName = module;
-			
-			//console.log(module, 'originalName', originalName);///
-			
+						
 			parent = parent || null;
 
-			if (module.split('!').length === 2) {
+			if (module && module.split('!').length === 2) {
 				pluginName = module.split('!')[0];
 				module = module.split('!')[1];
 			}
 			
 			if(pluginName){
-				//pluginName = processRelativePath(plugin, parent);
 				
 				pluginCallback = function(param){
 									//the module is already loaded, but has 
@@ -391,7 +395,7 @@
 										defined[originalName].result = param;
 									}							
 									//module is a string and is defined now, resolve it	
-									console.log(module, originalName, 'callback', callback);
+									//console.log(module, originalName, 'callback', callback);
 									
 									requireString(parent, callback);
 									
@@ -422,11 +426,6 @@
 						plugin.load(module, mmdRequire, pluginCallback, instanceConfig);
 					}, parent);
 				}else{
-					//TODO: callback aufrufen von original name ... nicht module callback
-					/*if ('function' === typeof callback) {
-							callback.call(null, defined[originalName].result);
-					}*/
-
 					return defined[originalName].result;
 				}
 					
@@ -452,7 +451,6 @@
 
 					}
 				} else {
-					
 					waitFor(module, callback, parent);
 				}
 			}
@@ -465,10 +463,8 @@
 			if ("function" === typeof defined[module].factory) {
 
 				defined[module].result = defined[module].factory.apply(null, args);
-				// console.log(module, 'call factory' , defined[module].factory.length,'with args', args.length);
 			} else {
 				defined[module].result = defined[module].factory;
-				// console.log(module, 'use factory ohne args');
 			}
 			
 			if (defined[module].usingExports) {
@@ -489,7 +485,6 @@
 				isModule = true,
 				i,
 				normalizeModuleId = normalize(module, parent);
-				
 			//if module has an extension - it is not a module
 			for (i=FILE_WHTITE_LIST.length-1; i >= 0; i--) {
 				if(FILE_WHTITE_LIST[i] === ext) { 
@@ -502,7 +497,7 @@
 				name: module,
 				isModule: isModule, //(-1 === module.lastIndexOf('.js')),
 				contextRequire: require,
-				url: checkUrl(module, isModule),
+				url: processRelativePath(checkUrl(module, isModule), parent),
 				normalizeModuleId: normalizeModuleId
 			});
 
@@ -521,12 +516,8 @@
 				var callback = waiting[module].isModule ?
 					function(ret) {
 						var item;
-							//console.group('anon '+ module + ' ==' +arguments[1] );///
 						if(anonQueue.length){
-								//console.log(anonQueue.length, 'anonQueue' ,anonQueue)///
 							item = anonQueue.shift();
-								//console.log('item', item);///
-							//console.groupEnd();
 							define(arguments[1], item[1], item[2]); //
 						}
 					} : 

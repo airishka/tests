@@ -1,4 +1,4 @@
-go(     ['require', 'earth'],//, 'prime/earth'],
+go(     ['require', 'earth', 'prime/earth'],
 function (require,   earth) {
 
     doh.register(
@@ -8,9 +8,9 @@ function (require,   earth) {
                 t.is("a", earth.getA().name);
                 t.is("c", earth.getC().name);
                 t.is("b", earth.getB().name);
-                // t.is("aPrime", primeEarth.getA().name);
-                // t.is("cPrime", primeEarth.getC().name);
-                // t.is("bPrime", primeEarth.getB().name);
+                t.is("aPrime", primeEarth.getA().name);
+                t.is("cPrime", primeEarth.getC().name);
+                t.is("bPrime", primeEarth.getB().name);
              }
         ]
     );
