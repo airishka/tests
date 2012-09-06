@@ -237,7 +237,7 @@
 				i, j, modArr, mln = moduleIdArr.length, parentPathPartsArr, parentPath; 
 				
 				function getParentPath(needTrailingSlash) {
-					return parentId ? parentId.substr(0, parentId.lastIndexOf('/')+(!(!!needTrailingSlash)*1)) : "";
+					return parentId ? parentId.substr(0, parentId.lastIndexOf('/')+(!!needTrailingSlash*1)) : "";
 				}
 
 				function addTrailingSlash(url){
@@ -246,7 +246,7 @@
 				
 				for (i=0; i < mln; i += 1) {
 					if(moduleIdArr[i].indexOf('../') === 0){
-							parentPath = getParentPath(true);
+							parentPath = getParentPath();
 							parentPathPartsArr = parentPath.split('/');
 							
 							modArr = moduleIdArr[i].split('/');
@@ -262,7 +262,7 @@
 						
 					}else{
 						if (moduleIdArr[i].indexOf('./') === 0) {
-							moduleIdArr[i] = moduleIdArr[i].replace('./', getParentPath());
+							moduleIdArr[i] = moduleIdArr[i].replace('./', getParentPath(true));
 						}
 					}
 				}
