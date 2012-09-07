@@ -1,4 +1,4 @@
-go(    ["require", "two", "funcTwo", "funcThree"],
+go(    ["require", "two"],
 function(require,   two,   funcTwo,   funcThree) {
         var args = two.doSomething(),
             twoInst = new funcTwo("TWO"),
@@ -16,7 +16,7 @@ function(require,   two,   funcTwo,   funcThree) {
             ]
         );
         doh.run();
-
+/*
         doh.register(
             "circularFunc",
             [
@@ -28,5 +28,30 @@ function(require,   two,   funcTwo,   funcThree) {
             ]
         );
         doh.run();
+        */
     }
 );
+
+
+
+define("one", ["require", "exports", "module", "two"], function(require, exports, module) {
+    exports.size = "large";
+    exports.module = module;
+    exports.doSomething = function() {
+        return require("two");
+    };
+});
+
+
+define("two", ["require", "one"], function(require, one) {
+    return {
+        size: "small",
+        color: "redtwo",
+        doSomething: function() {
+            return one.doSomething();
+        },
+        getOneModule: function() {
+            return one.module;
+        }
+    };
+});

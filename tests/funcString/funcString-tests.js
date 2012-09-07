@@ -22,3 +22,46 @@ go(['one', 'two', 'three'], function (one, two, three) {
     doh.run();
 
 });
+
+
+define('two', function(require) {
+    //Dependencies
+    var one = require('one');
+    return {
+        size: "small",
+        color: "redtwo",
+        doSomething: function() {
+            return one.doSomething();
+        },
+        getOneModule: function() {
+            return one.module;
+        }
+    };
+});
+/*
+define('one', function(require, exports, module) {
+    exports.size = "large";
+    exports.module = module;
+    exports.doSomething = function() {
+        return require("two");
+    };
+});
+*/
+define('three', function (require, exports) {
+    var four = require('four'),
+        five = require('five');
+
+    exports.name = 'three';
+    exports.fourName = four;
+    exports.fiveName = five();
+});
+
+define('four', function(){
+    return 'four';
+});
+
+define('five', function(){
+    return function () {
+        return 'five';
+    }
+});

@@ -22,8 +22,8 @@
     //Define the tests for each level.
     levels = {
         basic: function () {
-            reg('basic/defineAmd');
-            reg('basic/simple');
+            //reg('basic/defineAmd');
+            //reg('basic/simple');
             reg('basic/circular');
         },
 

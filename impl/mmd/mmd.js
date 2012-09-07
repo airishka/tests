@@ -19,7 +19,7 @@
 		waiting = {},
 		mmdRequire,
 		anonQueue = [],
-		FILE_WHTITE_LIST = ['js','json','jsonp','css'], 
+		FILE_WHTITE_LIST = ['js','jsonp'], // ,'json','css' rausgenommen 
 		ANON_DATA_ATTR = "data-req_module",
 		factoryConfig = {},
 		cjsRequireRegExp = /[^.]\s*require\s*\(\s*["']([^'"\s]+)["']\s*\)/g,
@@ -152,6 +152,7 @@
 			//If no dependencies, and factory is a function, then figure out if it a
 			//CommonJS thing with dependencies.
 			if (!dependencies.length && isFunction(factory)) {
+				//debugger
 				//Remove comments from the factory string,
 				//look for require calls, and pull them into the dependencies,
 				//but only if there are function args.
