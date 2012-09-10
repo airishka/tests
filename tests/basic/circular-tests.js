@@ -1,5 +1,27 @@
-go(    ["require", "two"], // "funcTwo", "funcThree"],
-function(require,   two,   funcTwo,   funcThree) {
+define("two", ["require", "one"], function(require, one) {
+    return {
+        size: "small",
+        color: "redtwo",
+        doSomething: function() {
+            return one.doSomething();
+        },
+        getOneModule: function() {
+            return one.module;
+        }
+    };
+});
+
+define("one", ["require", "exports", "module", "two"], function(require, exports, module) {
+    exports.size = "large";
+    exports.module = module;
+    exports.doSomething = function() {
+        return require("two");
+    };
+});
+////////////////////////////////////////////////////////////////////////////////
+
+go(    ["require", "two"], //, "funcTwo", "funcThree"
+function(require,   two) {//, funcTwo,   funcThree
         var args = two.doSomething(),
             // twoInst = new funcTwo("TWO"),
             oneMod = two.getOneModule();
@@ -31,27 +53,3 @@ function(require,   two,   funcTwo,   funcThree) {
         */
     }
 );
-
-
-
-define("one", ["require", "exports", "module", "two"], function(require, exports, module) {
-    exports.size = "large";
-    exports.module = module;
-    exports.doSomething = function() {
-        return require("two");
-    };
-});
-
-
-define("two", ["require", "one"], function(require, one) {
-    return {
-        size: "small",
-        color: "redtwo",
-        doSomething: function() {
-            return one.doSomething();
-        },
-        getOneModule: function() {
-            return one.module;
-        }
-    };
-});

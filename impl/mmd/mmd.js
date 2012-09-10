@@ -19,7 +19,7 @@
 		waiting = {},
 		mmdRequire,
 		anonQueue = [],
-		FILE_WHTITE_LIST = ['js','jsonp'], // ,'json','css' rausgenommen 
+		FILE_WHTITE_LIST = ['js','json','jsonp','css'], 
 		ANON_DATA_ATTR = "data-req_module",
 		factoryConfig = {},
 		cjsRequireRegExp = /[^.]\s*require\s*\(\s*["']([^'"\s]+)["']\s*\)/g,
@@ -75,6 +75,88 @@
 	function isArray(it) {
 		return ostring.call(it) === '[object Array]';
 	}
+	
+	function define (name, dependencies, factory){
+		
+		var isAnon = false;
+
+		if ( typeof name !== 'string') {
+			isAnon = true;
+			factory = dependencies;
+			dependencies = name;
+			name = null;
+		}
+
+		if (dependencies && !dependencies.splice) {
+			factory = dependencies;
+			dependencies = [];
+		}
+	
+		
+		//If no dependencies, and factory is a function, then figure out if it a
+		//CommonJS thing with dependencies.
+		if (!dependencies.length && isFunction(factory)) {
+			//Remove comments from the factory string,
+			//look for require calls, and pull them into the dependencies,
+			//but only if there are function args.
+			if (factory.length) {
+				factory.toString()
+						.replace(commentRegExp, '')
+						.replace(cjsRequireRegExp, function(match, dep) {
+							dependencies.push(dep);
+						});
+
+				//May be a CommonJS thing even without require calls, but still
+				//could use exports, and module. Avoid doing exports and module
+				//work though if it just needs require.
+				//REQUIRES the function to expect the CommonJS variables in the
+				//order listed below.
+				dependencies = (factory.length === 1 ? ['require'] : ['require', 'exports', 'module']).concat(dependencies);
+			}
+		}
+
+
+		if(isAnon){
+			anonQueue.push([name, dependencies, factory]);
+
+		} else {
+		
+			if (!defined[name]) {
+				defined[name] = {
+					name: name,
+					dependencies: dependencies,
+					factory: factory
+				};
+			}
+
+			resolveWaiting(name);
+		}
+	}	
+	
+	function resolveWaiting(module) {
+		
+		var counter, waitingCallbacksLength;
+		
+		if('undefined' !== typeof waiting[module]) {
+
+			waitingCallbacksLength = waiting[module].callbacks.length;
+
+			if (!waiting[module].isModule && !defined.hasOwnProperty(module)) {
+				defined[module] = {
+					name: module,
+					dependencies: null,
+					factory: null,
+					result: null
+				};
+			}
+			
+			for (counter=0; counter < waitingCallbacksLength; counter++) {
+				waiting[module].contextRequire(module, waiting[module].callbacks[counter]);
+			}
+
+			delete(waiting[module]);
+		}			
+	}	
 
 
 	function MmdClass (defautlInstanceConfig) {
@@ -129,65 +211,6 @@
 
 		function toUrl() {
 			return instanceConfig.baseUrl + arguments[0];
-		}
-
-		
-		function define (name, dependencies, factory){
-			
-			var isAnon = false;
-
-			if ( typeof name !== 'string') {
-				isAnon = true;
-				factory = dependencies;
-				dependencies = name;
-				name = null;
-			}
-
-			if (dependencies && !dependencies.splice) {
-				factory = dependencies;
-				dependencies = [];
-			}
-		
-			
-			//If no dependencies, and factory is a function, then figure out if it a
-			//CommonJS thing with dependencies.
-			if (!dependencies.length && isFunction(factory)) {
-				//debugger
-				//Remove comments from the factory string,
-				//look for require calls, and pull them into the dependencies,
-				//but only if there are function args.
-				if (factory.length) {
-					factory.toString()
-							.replace(commentRegExp, '')
-							.replace(cjsRequireRegExp, function(match, dep) {
-								dependencies.push(dep);
-							});
-
-					//May be a CommonJS thing even without require calls, but still
-					//could use exports, and module. Avoid doing exports and module
-					//work though if it just needs require.
-					//REQUIRES the function to expect the CommonJS variables in the
-					//order listed below.
-					dependencies = (factory.length === 1 ? ['require'] : ['require', 'exports', 'module']).concat(dependencies);
-				}
-			}
-
-
-			if(isAnon){
-				anonQueue.push([name, dependencies, factory]);
-
-			} else {
-			
-				if (!defined[name]) {
-					defined[name] = {
-						name: name,
-						dependencies: dependencies,
-						factory: factory
-					};
-				}
-
-				resolveWaiting(name);
-			}
 		}
 		
 		/**
@@ -344,7 +367,7 @@
 					}, parent);
 				} else {
 					//parent module is already required
-					results[index] = commonJsHandlers[moduleId].call(null, waiting[parent]);
+					results[index] = commonJsHandlers[moduleId].call(null, waiting[parent] || defined[parent]);
 					
 					if (dependenciesLength === results.length && 'function' === typeof callback) {
 							callback.apply(null, results);
@@ -559,31 +582,6 @@
 				}
 			
 			});
-		}
-		
-		function resolveWaiting(module) {
-			
-			var counter, waitingCallbacksLength;
-			
-			if('undefined' !== typeof waiting[module]) {
-
-				waitingCallbacksLength = waiting[module].callbacks.length;
-
-				if (!waiting[module].isModule && !defined.hasOwnProperty(module)) {
-					defined[module] = {
-						name: module,
-						dependencies: null,
-						factory: null,
-						result: null
-					};
-				}
-				
-				for (counter=0; counter < waitingCallbacksLength; counter++) {
-					waiting[module].contextRequire(module, waiting[module].callbacks[counter]);
-				}
-
-				delete(waiting[module]);
-			}			
 		}
 		
 		setConfig(defautlInstanceConfig);
