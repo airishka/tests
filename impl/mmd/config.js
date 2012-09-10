@@ -1,6 +1,7 @@
 
 //Map the configure({}) call to loader-specific call.
 var requireInst = new require({
+	loader: 'loader.nonBlocking'
 }), 
 	config = requireInst.configure,
 
@@ -11,11 +12,11 @@ var requireInst = new require({
     //and therefore which tests to run.
     implemented = {
         basic: true,
-        //anon: true,
-        //funcString: true
-        //namedWrapped: true,
-        //require: true,
-        //plugins: true
+        anon: true,
+        funcString: true,
+        namedWrapped: true,
+        require: true,
+        plugins: true
         //Does NOT support pluginDynamic in 1.0
         //pluginDynamic: true
     };

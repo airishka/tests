@@ -1,4 +1,3 @@
-debugger
 define(function (require, exports) {
     var four = require('four'),
         five = require('five');

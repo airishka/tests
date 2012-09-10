@@ -1,7 +1,7 @@
-go(    ["require", "two"],
+go(    ["require", "two"], // "funcTwo", "funcThree"],
 function(require,   two,   funcTwo,   funcThree) {
         var args = two.doSomething(),
-            twoInst = new funcTwo("TWO"),
+            // twoInst = new funcTwo("TWO"),
             oneMod = two.getOneModule();
 
         doh.register(
