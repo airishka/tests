@@ -311,13 +311,32 @@
 				
 				return isString? moduleIdArr[0] : moduleIdArr;
 		}
+		/**
+		 * @return {Object} waiting[moduleId] obj || {name: 'name', contextRequire: mmdRequire}
+		 * @param {String} moduleId - wanted module
+		 * @param {String} referId - reference to moduleName which parent is wanted
+		 */
+		function getModuleObj(moduleId, referId) {
+			var modObj = null;
+			
+			if(waiting.hasOwnProperty(moduleId)) {
+				modObj = waiting[moduleId];
+			} else {
+				modObj = {
+					name: (defined[moduleId] && defined[moduleId].name) || 'top level require, module '+referId+' has no parent: '+ moduleId,
+					contextRequire: mmdRequire
+				};
+			}
+			//console.log('referId: "',referId,'", moduleId: "', moduleId, '", def', defined[moduleId], 'mobj', modObj);///
+			return modObj;	
+		}
 		
 		function require ( mixed ) {
 
 			var reqModule;
 			if (this instanceof require) {
 			
-				return getMmdInstance(arguments[0]);	
+				return getMmdInstance(arguments[0]);
 			
 			} else {
 				
@@ -366,8 +385,9 @@
 						}
 					}, parent);
 				} else {
-					//parent module is already required
-					results[index] = commonJsHandlers[moduleId].call(null, waiting[parent] || defined[parent]);
+					//parent module is already required; or it is a top level require with more then one module required
+					// console.log('_parent: "', parent, '", deps', deps);///
+					results[index] = commonJsHandlers[moduleId].call(null, getModuleObj(parent, moduleId));
 					
 					if (dependenciesLength === results.length && 'function' === typeof callback) {
 							callback.apply(null, results);
